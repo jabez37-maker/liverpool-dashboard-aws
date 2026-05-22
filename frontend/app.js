@@ -1,4 +1,6 @@
-const API = "http://3.238.141.181:3000";
+//const API = "http://3.238.141.181:3000";
+
+const API = "http://localhost:3000";
 
 async function loadDashboard(){
 
@@ -12,13 +14,15 @@ async function loadDashboard(){
       teamRes,
       standingsRes,
       matchesRes,
-      newsRes
+      newsRes,
+      playersRes
     ] = await Promise.all([
 
       fetch(`${API}/api/liverpool`),
       fetch(`${API}/api/standings`),
       fetch(`${API}/api/matches`),
-      fetch(`${API}/api/news`)
+      fetch(`${API}/api/news`),
+      fetch(`${API}/api/players`)
 
     ]);
 
@@ -33,6 +37,47 @@ async function loadDashboard(){
 
     const newsData =
       await newsRes.json();
+
+    const playersData =
+      await playersRes.json();
+
+      playersData.push(
+
+  {
+    player: {
+      name: "Alexander Isak",
+      nationality: "Sweden",
+      age: 25,
+      photo: "./images/isak.png"
+    },
+    statistics: [{
+      team: { id: 40 },
+      games: {
+        position: "Attacker",
+        appearences: 0,
+        rating: "N/A"
+      }
+    }]
+  },
+
+  {
+    player: {
+      name: "Hugo Ekitike",
+      nationality: "France",
+      age: 23,
+     photo: "./images/ekitike.png"
+    },
+    statistics: [{
+      team: { id: 40 },
+      games: {
+        position: "Attacker",
+        appearences: 0,
+        rating: "N/A"
+      }
+    }]
+  }
+
+);
 
     // ===================================
     // HERO
@@ -51,36 +96,133 @@ async function loadDashboard(){
       `👔 ${team.coach.name}`;
 
     // ===================================
-    // PLAYERS
-    // ===================================
+// PLAYERS
+// ===================================
 
-    const players =
-      document.getElementById("players");
+const players =
+  document.getElementById(
+    "players-container"
+  );
 
-    players.innerHTML = "";
+players.innerHTML = "";
 
-    team.squad.forEach(player => {
+const excludedPlayers = [
 
-      players.innerHTML += `
+  "T. Alexander-Arnold",
+  "D. Núñez",
+  "C. Kelleher",
+  "J. Quansah",
+  "Marcelo Pitaluga",
+  "Calvin Ramsay",
+  "Rhys Williams",
+  "Fabian Mrozek",
+  "H. Elliott",
+  "K. Tsimikas",
+  "B. Doak",
+  "R. Williams",
+  "S. van den Berg",
+  "Fábio Carvalho",
+  "Marcelo",
+  "H. Blair",
+  "Stefan Bajčetić",
+  "Adrián",
+  "N. Phillips",
+  "James Barry Norris",
+  "O. Beck",
+  "T. Morton",
+  "H. Davies",
+  "Kaide Gordon",
+  "L. Koumas",
+  "B. Clark",
+  "Trent Toure Kone Doherty",
+  "R. Young",
+  "K. Morrison",
 
-        <div class="player">
+];
 
-          <h3>${player.name}</h3>
+playersData
 
-          <p>
-            ${player.position || "Unknown"}
-          </p>
+  .filter(item => {
 
-          <p>
-            ${player.nationality}
-          </p>
+    const stats =
+      item.statistics.find(
+        s => s.team.id === 40
+      );
 
-        </div>
+    if(!stats) return false;
 
-      `;
+    return (
 
-    });
+      stats.games.appearences !== null &&
 
+      item.player.age > 16 &&
+
+      stats.games.position !== "Coach" &&
+
+      !excludedPlayers.some(name =>
+        item.player.name.includes(name)
+      )
+
+    );
+
+  })
+
+  .sort((a, b) => {
+
+    const aStats =
+      a.statistics.find(
+        s => s.team.id === 40
+      );
+
+    const bStats =
+      b.statistics.find(
+        s => s.team.id === 40
+      );
+
+    return (
+      (bStats.games.appearences || 0) -
+      (aStats.games.appearences || 0)
+    );
+
+  })
+
+  .forEach(item => {
+
+    const player =
+      item.player;
+
+    const stats =
+      item.statistics.find(
+        s => s.team.id === 40
+      );
+
+    players.innerHTML += `
+
+      <div class="player-card">
+
+        <img
+          src="${player.photo}"
+          alt="${player.name}"
+          class="player-image"
+        />
+
+        <h3>
+          ${player.name}
+        </h3>
+
+        <p>
+          ⚽ ${stats.games.position}
+        </p>
+
+        <p>
+          🌍 ${player.nationality}
+        </p>
+
+      </div>
+
+    `;
+
+  });
     // ===================================
     // STANDINGS
     // ===================================
@@ -93,19 +235,31 @@ async function loadDashboard(){
 
     standingsDiv.innerHTML = "";
 
-    standings
-      .slice(0,10)
-      .forEach(team => {
+    standings.forEach(team => {
 
         standingsDiv.innerHTML += `
 
-          <div class="
-            table-row
-            ${team.team.name === "Liverpool FC"
-              ? "liverpool"
-              : ""}
-          ">
+        <div class="
+  table-row
 
+  ${team.position <= 4
+    ? "ucl"
+
+  : team.position === 5
+    ? "uel"
+
+  : team.position === 6
+    ? "uecl"
+
+  : team.position >= 18
+    ? "relegation"
+
+  : ""}
+
+  ${team.team.name === "Liverpool FC"
+    ? "liverpool"
+    : ""}
+">
             <div class="table-left">
 
               <img
@@ -175,48 +329,103 @@ async function loadDashboard(){
       document.getElementById("next-match");
 
     if (upcomingMatches.length > 0) {
+const nextMatch =
+  upcomingMatches[0];
 
-      const nextMatch =
-        upcomingMatches[0];
+nextMatchDiv.innerHTML = `
 
-      nextMatchDiv.innerHTML = `
+  <div class="next-match-content">
+  ${
+  nextMatch.status === "IN_PLAY"
+  ? `
+    <div class="live-badge">
+      🔴 LIVE
+    </div>
+  `
+  : ""
+}
 
-        <h3>
+    <div class="next-match-teams">
 
+      <div class="next-team">
+
+        <img
+          src="${nextMatch.homeTeam.crest}"
+          class="next-team-logo"
+        />
+
+        <span>
           ${nextMatch.homeTeam.name}
+        </span>
 
-          vs
+      </div>
 
+      <div class="vs-text">
+        VS
+      </div>
+
+      <div class="next-team">
+
+        <img
+          src="${nextMatch.awayTeam.crest}"
+          class="next-team-logo"
+        />
+
+        <span>
           ${nextMatch.awayTeam.name}
+        </span>
 
-        </h3>
+      </div>
 
-        <p>
+    </div>
 
-          📅
-          ${new Date(
-            nextMatch.utcDate
-          ).toLocaleString()}
+    <div class="competition-row">
 
-        </p>
+      <img
+        src="${nextMatch.competition.emblem}"
+        class="
+         competition-logo
+        ${nextMatch.competition.name === "Premier League"
+          ? "pl-logo"
+          : ""}
+"
+      />
 
-        <p>
+      <span class="match-venue">
 
-          🏆
-          ${nextMatch.competition.name}
+        ${nextMatch.competition.name}
 
-        </p>
+        •
 
-      `;
+        ${nextMatch.venue || "Anfield"}
 
-    } else {
+      </span>
 
-      nextMatchDiv.innerHTML = `
-        <p>No upcoming matches found.</p>
-      `;
+    </div>
 
-    }
+    <p class="kickoff-time">
 
+      Kickoff:
+      ${new Date(
+        nextMatch.utcDate
+      ).toLocaleString()}
+
+    </p>
+
+  </div>
+
+`;
+} else {
+
+  nextMatchDiv.innerHTML = `
+
+    <p>
+      No upcoming matches found.
+    </p>
+
+  `;
+
+}
     // ===================================
     // RECENT MATCHES
     // ===================================
@@ -266,26 +475,49 @@ async function loadDashboard(){
 
       recentMatchesDiv.innerHTML += `
 
-        <div class="match ${resultClass}">
+  <div class="match ${resultClass}">
 
-          <h3>
+    <div class="match-teams">
 
-            ${match.homeTeam.name}
+      <div class="team">
 
-            ${homeGoals}
+        <img
+          src="${match.homeTeam.crest}"
+          class="match-logo"
+        />
 
-            -
+        <span>
+          ${match.homeTeam.name}
+        </span>
 
-            ${awayGoals}
+      </div>
 
-            ${match.awayTeam.name}
+      <div class="score">
 
-          </h3>
+        ${homeGoals}
+        -
+        ${awayGoals}
 
-        </div>
+      </div>
 
-      `;
+      <div class="team">
 
+        <img
+          src="${match.awayTeam.crest}"
+          class="match-logo"
+        />
+
+        <span>
+          ${match.awayTeam.name}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+`;
     });
 
     // ===================================
@@ -397,12 +629,19 @@ async function loadDashboard(){
 
               </h3>
 
-              <p>
+<p class="news-time">
 
-                ${article.description || ""}
+  ${new Date(
+    article.publishedAt
+  ).toLocaleString()}
 
-              </p>
+</p>
 
+<p>
+
+  ${article.description || ""}
+
+</p>
             </div>
 
           `;
@@ -436,8 +675,9 @@ const squadButton =
 
 const playersDiv =
   document.getElementById(
-    "players"
+    "players-container"
   );
+  
 
 const dropdownIcon =
   document.getElementById(
@@ -457,6 +697,50 @@ if(squadButton){
       dropdownIcon.classList.toggle(
         "rotate"
       );
+
+    }
+  );
+
+}
+
+// ===================================
+// STANDINGS DROPDOWN
+// ===================================
+
+const standingsButton =
+  document.getElementById(
+    "toggle-standings"
+  );
+
+const standingsContainer =
+  document.getElementById(
+    "standings"
+  );
+
+const standingsIcon =
+  document.getElementById(
+    "standings-icon"
+  );
+
+if(standingsButton){
+
+  standingsButton.addEventListener(
+    "click",
+    () => {
+
+      standingsContainer
+        .classList
+        .toggle("hidden");
+
+      if(
+
+        standingsContainer
+          .classList
+          .contains("hidden")
+
+      )standingsIcon.classList.toggle(
+  "rotate"
+);
 
     }
   );

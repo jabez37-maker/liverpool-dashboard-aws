@@ -1,3 +1,12 @@
+process.on("uncaughtException", err => {
+  console.error(err);
+});
+
+process.on("unhandledRejection", err => {
+  console.error(err);
+});
+
+const fetch = require("node-fetch");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -83,7 +92,7 @@ app.get("/api/matches", async (req, res) => {
     );
 
     const data = await response.json();
-
+     console.log(data);
     res.json(data);
 
   } catch (err) {
@@ -106,12 +115,12 @@ app.get("/api/news", async (req, res) => {
 
     const response = await fetch(
 
-      `https://newsapi.org/v2/everything?q=liverpool&language=en&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`
+  `https://newsapi.org/v2/everything?q="Liverpool FC" OR "Liverpool football club" OR LFC&language=en&sortBy=publishedAt&pageSize=10&apiKey=${process.env.NEWS_API_KEY}`
 
-    );
+);
 
     const data = await response.json();
-
+   
     res.json(data);
 
   } catch (err) {
@@ -121,6 +130,42 @@ app.get("/api/news", async (req, res) => {
     });
 
   }
+
+});
+
+app.get("/api/players", async (req, res) => {
+
+    try {
+
+        let allPlayers = [];
+
+        for (let page = 1; page <= 4; page++) {
+
+            const response = await fetch(
+                `https://v3.football.api-sports.io/players?team=40&season=2024&page=${page}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "x-apisports-key": process.env.API_FOOTBALL_KEY
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            allPlayers.push(...data.response);
+
+        }
+
+        res.json(allPlayers);
+
+    } catch (err) {
+
+        res.status(500).json({
+            error: err.message
+        });
+
+    }
 
 });
 
