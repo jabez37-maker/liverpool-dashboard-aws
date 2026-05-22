@@ -1,6 +1,6 @@
-//const API = "http://3.238.141.181:3000";
+const API = "http://3.238.141.181:3000";
 
-const API = "http://localhost:3000";
+//const API = "http://localhost:3000";
 
 async function loadDashboard(){
 
