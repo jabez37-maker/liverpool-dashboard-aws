@@ -92,7 +92,7 @@ app.get("/api/matches", async (req, res) => {
     );
 
     const data = await response.json();
-     console.log(data);
+     
     res.json(data);
 
   } catch (err) {

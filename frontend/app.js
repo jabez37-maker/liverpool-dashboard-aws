@@ -1,6 +1,6 @@
-const API = "http://3.238.141.181:3000";
+//const API = "http://3.238.141.181:3000";
 
-//const API = "http://localhost:3000";
+const API = "http://localhost:3000";
 
 async function loadDashboard(){
 
@@ -426,73 +426,84 @@ nextMatchDiv.innerHTML = `
   `;
 
 }
-    // ===================================
-    // RECENT MATCHES
-    // ===================================
+  // ===================================
+// RECENT MATCHES
+// ===================================
 
-    const recentMatchesDiv =
-      document.getElementById(
-        "recent-matches"
-      );
+const recentMatchesDiv =
+  document.getElementById(
+    "recent-matches"
+  );
 
-    recentMatchesDiv.innerHTML = "";
+recentMatchesDiv.innerHTML = "";
 
-    const finishedMatches =
-      matchesData.matches
-        .filter(
-          match =>
-            match.status === "FINISHED"
-        )
-        .slice(-5)
-        .reverse();
+const finishedMatches =
+  matchesData.matches
+    .filter(
+      match =>
+        match.status === "FINISHED"
+    )
+    .slice(-5)
+    .reverse();
 
-    finishedMatches.forEach(match => {
+finishedMatches.forEach(match => {
 
-      const isLiverpoolHome =
-        match.homeTeam.name === "Liverpool FC";
+  const isLiverpoolHome =
+    match.homeTeam.name === "Liverpool FC";
 
-      const homeGoals =
-        match.score.fullTime.home;
+  const homeGoals =
+    match.score.fullTime.home;
 
-      const awayGoals =
-        match.score.fullTime.away;
+  const awayGoals =
+    match.score.fullTime.away;
 
-      let resultClass = "draw";
+  let resultClass = "draw";
 
-      if (
-        (isLiverpoolHome && homeGoals > awayGoals) ||
-        (!isLiverpoolHome && awayGoals > homeGoals)
-      ) {
-        resultClass = "win";
-      }
+  if (
+    (isLiverpoolHome && homeGoals > awayGoals) ||
+    (!isLiverpoolHome && awayGoals > homeGoals)
+  ) {
 
-      if (
-        (isLiverpoolHome && homeGoals < awayGoals) ||
-        (!isLiverpoolHome && awayGoals < homeGoals)
-      ) {
-        resultClass = "loss";
-      }
+    resultClass = "win";
 
-      recentMatchesDiv.innerHTML += `
+  }
 
-  <div class="match ${resultClass}">
+  if (
+    (isLiverpoolHome && homeGoals < awayGoals) ||
+    (!isLiverpoolHome && awayGoals < homeGoals)
+  ) {
 
-    <div class="match-teams">
+    resultClass = "loss";
 
-      <div class="team">
+  }
+
+  recentMatchesDiv.innerHTML += `
+
+    <div class="match">
+
+      <div class="team-side">
 
         <img
           src="${match.homeTeam.crest}"
-          class="match-logo"
+          class="recent-team-logo"
         />
 
-        <span>
+        <span class="
+          ${match.homeTeam.name === "Liverpool FC"
+            ? "liverpool-text"
+            : ""}
+        ">
+
           ${match.homeTeam.name}
+
         </span>
 
       </div>
 
-      <div class="score">
+      <div class="
+        score-box
+        ${resultClass}
+      ">
 
         ${homeGoals}
         -
@@ -500,86 +511,34 @@ nextMatchDiv.innerHTML = `
 
       </div>
 
-      <div class="team">
+      <div class="
+        team-side
+        away-team
+      ">
 
         <img
           src="${match.awayTeam.crest}"
-          class="match-logo"
+          class="recent-team-logo"
         />
 
-        <span>
+        <span class="
+          ${match.awayTeam.name === "Liverpool FC"
+            ? "liverpool-text"
+            : ""}
+        ">
+
           ${match.awayTeam.name}
+
         </span>
 
       </div>
 
     </div>
 
-  </div>
+  `;
 
-`;
-    });
-
-    // ===================================
-    // CURRENT FORM
-    // ===================================
-
-    const formDiv =
-      document.getElementById("form");
-
-    if(formDiv){
-
-      formDiv.innerHTML = "";
-
-      finishedMatches
-        .slice(0,5)
-        .forEach(match => {
-
-          const isLiverpoolHome =
-            match.homeTeam.name === "Liverpool FC";
-
-          const homeGoals =
-            match.score.fullTime.home;
-
-          const awayGoals =
-            match.score.fullTime.away;
-
-          let form = "D";
-          let formClass = "form-draw";
-
-          if (
-            (isLiverpoolHome && homeGoals > awayGoals) ||
-            (!isLiverpoolHome && awayGoals > homeGoals)
-          ) {
-            form = "W";
-            formClass = "form-win";
-          }
-
-          if (
-            (isLiverpoolHome && homeGoals < awayGoals) ||
-            (!isLiverpoolHome && awayGoals < homeGoals)
-          ) {
-            form = "L";
-            formClass = "form-loss";
-          }
-
-          formDiv.innerHTML += `
-
-            <div class="
-              form-circle
-              ${formClass}
-            ">
-
-              ${form}
-
-            </div>
-
-          `;
-
-        });
-
-    }
-
+});
+    
     // ===================================
     // NEWS
     // ===================================
@@ -664,85 +623,4 @@ nextMatchDiv.innerHTML = `
 
 loadDashboard();
 
-// ===================================
-// DROPDOWN
-// ===================================
 
-const squadButton =
-  document.getElementById(
-    "toggle-squad"
-  );
-
-const playersDiv =
-  document.getElementById(
-    "players-container"
-  );
-  
-
-const dropdownIcon =
-  document.getElementById(
-    "dropdown-icon"
-  );
-
-if(squadButton){
-
-  squadButton.addEventListener(
-    "click",
-    () => {
-
-      playersDiv.classList.toggle(
-        "hidden"
-      );
-
-      dropdownIcon.classList.toggle(
-        "rotate"
-      );
-
-    }
-  );
-
-}
-
-// ===================================
-// STANDINGS DROPDOWN
-// ===================================
-
-const standingsButton =
-  document.getElementById(
-    "toggle-standings"
-  );
-
-const standingsContainer =
-  document.getElementById(
-    "standings"
-  );
-
-const standingsIcon =
-  document.getElementById(
-    "standings-icon"
-  );
-
-if(standingsButton){
-
-  standingsButton.addEventListener(
-    "click",
-    () => {
-
-      standingsContainer
-        .classList
-        .toggle("hidden");
-
-      if(
-
-        standingsContainer
-          .classList
-          .contains("hidden")
-
-      )standingsIcon.classList.toggle(
-  "rotate"
-);
-
-    }
-  );
-
-}
